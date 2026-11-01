@@ -1,0 +1,20 @@
+# Learn more about this project: https://docs.expo.dev/
+
+# default gitignore from Expo
+node_modules/
+.expo/
+.expo-shared/
+web-build/
+.dist/
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# native builds
+android/
+ios/
+
+# OS metadata
+.DS_Store
