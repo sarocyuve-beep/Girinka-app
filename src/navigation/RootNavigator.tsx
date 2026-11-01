@@ -6,8 +6,10 @@ import AuthScreen from '../screens/AuthScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SelectionCampaignListScreen from '../screens/selection/SelectionCampaignListScreen';
 import SelectionCampaignFormScreen from '../screens/selection/SelectionCampaignFormScreen';
+import CandidateFormScreen from '../screens/selection/CandidateFormScreen';
 import BeneficiaryListScreen from '../screens/registry/BeneficiaryListScreen';
 import BeneficiaryDetailScreen from '../screens/registry/BeneficiaryDetailScreen';
+import BeneficiaryFormScreen from '../screens/registry/BeneficiaryFormScreen';
 import type { Role } from '../types/core';
 
 export type RootStackParamList = {
@@ -15,8 +17,10 @@ export type RootStackParamList = {
   Home: { userName?: string; role?: Role } | undefined;
   SelectionCampaignList: undefined;
   SelectionCampaignForm: undefined;
+  CandidateForm: undefined;
   BeneficiaryList: undefined;
   BeneficiaryDetail: { beneficiaryId: string };
+  BeneficiaryForm: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,6 +42,11 @@ export default function RootNavigator() {
           options={{ title: 'New campaign' }}
         />
         <Stack.Screen
+          name="CandidateForm"
+          component={CandidateFormScreen}
+          options={{ title: 'New candidate' }}
+        />
+        <Stack.Screen
           name="BeneficiaryList"
           component={BeneficiaryListScreen}
           options={{ title: 'Beneficiary registry' }}
@@ -46,6 +55,11 @@ export default function RootNavigator() {
           name="BeneficiaryDetail"
           component={BeneficiaryDetailScreen}
           options={{ title: 'Beneficiary detail' }}
+        />
+        <Stack.Screen
+          name="BeneficiaryForm"
+          component={BeneficiaryFormScreen}
+          options={{ title: 'New beneficiary' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
