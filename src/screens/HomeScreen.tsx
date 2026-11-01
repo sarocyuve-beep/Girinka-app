@@ -5,19 +5,52 @@ import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-const quickActions = [
-  { title: 'Selection campaigns', route: 'SelectionCampaignList' as const, description: 'Create and review candidate campaigns' },
-  { title: 'Beneficiary registry', route: 'BeneficiaryList' as const, description: 'Search and view beneficiary profiles' },
-  { title: 'New campaign', route: 'SelectionCampaignForm' as const, description: 'Create a selection form and checklist' },
-];
+const roleColors: Record<string, string> = {
+  DISTRICT_ADMIN: '#1d4ed8',
+  SECTOR: '#0f766e',
+  CELL: '#9333ea',
+  VILLAGE: '#d97706',
+  FIELD_OFFICER: '#dc2626',
+  VIEWER: '#6b7280',
+};
 
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen({ navigation, route }: Props) {
+  const userName = route.params?.userName ?? 'Admin';
+  const role = route.params?.role ?? 'DISTRICT_ADMIN';
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>GirinkaApp</Text>
-      <Text style={styles.subtitle}>Digital registry for selection, beneficiary tracking, and cattle distribution.</Text>
+      <View style={styles.headerCard}>
+        <Text style={styles.greeting}>Welcome back</Text>
+        <Text style={styles.userName}>{userName}</Text>
+        <View style={[styles.roleBadge, { backgroundColor: roleColors[role] || '#2563eb' }]}>
+          <Text style={styles.roleText}>{role.replace('_', ' ')}</Text>
+        </View>
+      </View>
 
-      {quickActions.map((action) => (
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>814</Text>
+          <Text style={styles.statLabel}>Beneficiaries</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>120</Text>
+          <Text style={styles.statLabel}>Candidates</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>42</Text>
+          <Text style={styles.statLabel}>Campaigns</Text>
+        </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>Quick actions</Text>
+
+      {[
+        { title: 'Selection campaigns', route: 'SelectionCampaignList' as const, description: 'Create and review candidate campaigns' },
+        { title: 'Beneficiary registry', route: 'BeneficiaryList' as const, description: 'Search and view beneficiary profiles' },
+        { title: 'New campaign', route: 'SelectionCampaignForm' as const, description: 'Create a selection form and checklist' },
+        { title: 'Reports', route: 'Reports' as const, description: 'Review program performance' },
+      ].map((action) => (
         <Pressable
           key={action.title}
           onPress={() => navigation.navigate(action.route)}
@@ -37,17 +70,63 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#f3f4f6',
   },
-  title: {
-    fontSize: 30,
+  headerCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  greeting: {
+    fontSize: 12,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+  },
+  userName: {
+    fontSize: 28,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
+    marginTop: 6,
+    marginBottom: 10,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#4b5563',
-    lineHeight: 24,
-    marginBottom: 24,
+  roleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  roleText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
   },
   card: {
     backgroundColor: '#ffffff',

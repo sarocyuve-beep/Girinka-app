@@ -1,20 +1,18 @@
-export interface Candidate {
+export type CandidateStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export type Candidate = {
   id: string;
   fullName: string;
-  village: string;
+  nationalId: string;
   sector: string;
-  score: number;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  eligibility: {
-    hasLand: boolean;
-    hasHousehold: boolean;
-    priorityFamily: boolean;
-    noCattle: boolean;
-    verified: boolean;
-  };
-}
+  cell: string;
+  village: string;
+  phone?: string;
+  status: CandidateStatus;
+  eligibility: Record<string, boolean>;
+};
 
-export interface SelectionCampaign {
+export type SelectionCampaign = {
   id: string;
   name: string;
   sector: string;
@@ -22,4 +20,4 @@ export interface SelectionCampaign {
   closeDate: string;
   status: 'Open' | 'Closed';
   candidates: Candidate[];
-}
+};

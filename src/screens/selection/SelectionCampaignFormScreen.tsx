@@ -1,5 +1,13 @@
 import * as React from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { createSelectionCampaign } from '../../db/selectionRepository';
@@ -9,33 +17,39 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SelectionCampaignForm'>
 export default function SelectionCampaignFormScreen({ navigation }: Props) {
   const [name, setName] = React.useState('');
   const [sector, setSector] = React.useState('Cyuve');
-  const [openDate, setOpenDate] = React.useState('2025-03-01');
-  const [closeDate, setCloseDate] = React.useState('2025-03-12');
+  const [openDate, setOpenDate] = React.useState('2025-01-01');
+  const [closeDate, setCloseDate] = React.useState('2025-01-30');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Validation', 'Campaign name is required.');
       return;
     }
 
-    createSelectionCampaign({
-      id: `campaign-${Date.now()}`,
-      name: name.trim(),
-      sector,
-      openDate,
-      closeDate,
-      status: 'Open',
-      candidates: [],
-    });
+    try {
+      await createSelectionCampaign({
+        id: `${Date.now()}`,
+        name: name.trim(),
+        sector: sector.trim() || 'Cyuve',
+        openDate,
+        closeDate,
+        status: 'Open',
+        candidates: [],
+      });
 
-    Alert.alert('Success', 'Selection campaign created.');
-    navigation.goBack();
+      Alert.alert('Success', 'Campaign saved.');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'Unable to save campaign.');
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>New campaign</Text>
+
       <Text style={styles.label}>Campaign name</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. Cyuve 2025" />
+      <TextInput style={styles.input} value={name} onChangeText={setName} />
 
       <Text style={styles.label}>Sector</Text>
       <TextInput style={styles.input} value={sector} onChangeText={setSector} />
@@ -49,24 +63,17 @@ export default function SelectionCampaignFormScreen({ navigation }: Props) {
       <Pressable style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save campaign</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    padding: 20,
-  },
-  label: {
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
-  },
+  container: { flexGrow: 1, backgroundColor: '#f3f4f6', padding: 24 },
+  title: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 20 },
+  label: { fontWeight: '700', color: '#111827', marginBottom: 8 },
   input: {
     backgroundColor: '#ffffff',
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#d1d5db',
     paddingHorizontal: 12,
@@ -75,13 +82,12 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#2563eb',
-    padding: 14,
     borderRadius: 10,
-    marginTop: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#ffffff',
-    textAlign: 'center',
     fontWeight: '700',
   },
 });
