@@ -1,123 +1,74 @@
-import * as React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/RootNavigator';
-import type { Role } from '../types/core';
+import { Beneficiary } from '../types/registry';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
-
-const quickActions = [
-  { title: 'Selection campaigns', route: 'SelectionCampaignList' as const, description: 'Create and review candidate campaigns' },
-  { title: 'Beneficiary registry', route: 'BeneficiaryList' as const, description: 'Search and view beneficiary profiles' },
-  { title: 'New campaign', route: 'SelectionCampaignForm' as const, description: 'Create a selection form and checklist' },
+export const cyuveBeneficiaries: Beneficiary[] = [
+  {
+    id: 'b-001',
+    fullName: 'Mugisha Jean',
+    nationalId: '1198471234567890',
+    sector: 'Cyuve',
+    cell: 'Ruhanga',
+    village: 'Kigarama',
+    phone: '+250788000001',
+    cattleReceived: 1,
+    distributionHistory: [
+      { year: 2024, source: 'District program', status: 'Received', notes: 'Approved and received one cow' },
+    ],
+  },
+  {
+    id: 'b-002',
+    fullName: 'Uwase Aline',
+    nationalId: '1198471234567891',
+    sector: 'Cyuve',
+    cell: 'Nyabubare',
+    village: 'Muvumba',
+    phone: '+250788000002',
+    cattleReceived: 2,
+    distributionHistory: [
+      { year: 2023, source: 'Sector office', status: 'Received', notes: 'Two cows distributed' },
+      { year: 2025, source: 'District program', status: 'Pending', notes: 'Awaiting approval' },
+    ],
+  },
+  {
+    id: 'b-003',
+    fullName: 'Niyonsaba Ernest',
+    nationalId: '1198471234567892',
+    sector: 'Cyuve',
+    cell: 'Muko',
+    village: 'Tetero',
+    phone: '+250788000003',
+    cattleReceived: 1,
+    distributionHistory: [
+      { year: 2024, source: 'Guarded by sector', status: 'Returned', notes: 'Cow returned for breeding review' },
+    ],
+  },
 ];
 
-const roleColors: Record<Role, string> = {
-  DISTRICT_ADMIN: '#1d4ed8',
-  SECTOR: '#0f766e',
-  CELL: '#9333ea',
-  VILLAGE: '#d97706',
-  FIELD_OFFICER: '#dc2626',
-  VIEWER: '#6b7280',
-};
+export const beneficiaries: Beneficiary[] = [...cyuveBeneficiaries];
 
-export default function HomeScreen({ navigation, route }: Props) {
-  const userName = route.params?.userName ?? 'Admin';
-  const role = route.params?.role ?? 'DISTRICT_ADMIN';
+export function importCyuveBeneficiariesIfNeeded() {
+  if (beneficiaries.length === 0) {
+    beneficiaries.push(...cyuveBeneficiaries);
+  }
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.headerCard}>
-        <Text style={styles.greeting}>Welcome back</Text>
-        <Text style={styles.userName}>{userName}</Text>
-        <View style={[styles.roleBadge, { backgroundColor: roleColors[role] }]}>
-          <Text style={styles.roleText}>{role.replace('_', ' ')}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Quick actions</Text>
-      {quickActions.map((action) => (
-        <Pressable
-          key={action.title}
-          onPress={() => navigation.navigate(action.route)}
-          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-        >
-          <Text style={styles.cardTitle}>{action.title}</Text>
-          <Text style={styles.cardText}>{action.description}</Text>
-        </Pressable>
-      ))}
-    </ScrollView>
-  );
+  return beneficiaries;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 24,
-    backgroundColor: '#f3f4f6',
-  },
-  headerCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  greeting: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  userName: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  roleBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  roleText: {
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 12,
-    textTransform: 'capitalize',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  cardPressed: {
-    opacity: 0.9,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 6,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-});
+export function addBeneficiary(beneficiary: Beneficiary) {
+  beneficiaries.unshift(beneficiary);
+  return beneficiary;
+}
+
+export function searchBeneficiaries(query: string) {
+  const cleanQuery = query.trim().toLowerCase();
+
+  if (!cleanQuery) {
+    return beneficiaries;
+  }
+
+  return beneficiaries.filter((beneficiary) =>
+    beneficiary.fullName.toLowerCase().includes(cleanQuery) ||
+      beneficiary.sector.toLowerCase().includes(cleanQuery) ||
+      beneficiary.village.toLowerCase().includes(cleanQuery) ||
+      beneficiary.nationalId.includes(cleanQuery)
+  );
+}
