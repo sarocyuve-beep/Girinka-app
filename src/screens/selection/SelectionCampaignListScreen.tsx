@@ -1,69 +1,80 @@
 import * as React from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { listSelectionCampaigns } from '../../db/selectionRepository';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
+import { listSelectionCampaigns } from '../../db/selectionRepository';
+import type { SelectionCampaign } from '../../types/selection';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SelectionCampaignList'>;
 
-export default function SelectionCampaignListScreen({ navigation }: Props) {
-  const campaigns = listSelectionCampaigns();
+export default function SelectionCampaignListScreen({}: Props) {
+  const [campaigns, setCampaigns] = React.useState<SelectionCampaign[]>([]);
+
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await listSelectionCampaigns();
+        setCampaigns(data);
+      } catch (error) {
+        Alert.alert('Error', 'Unable to load campaigns');
+      }
+    };
+
+    load();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.newButton} onPress={() => navigation.navigate('SelectionCampaignForm')}>
-        <Text style={styles.newButtonText}>+ New campaign</Text>
-      </Pressable>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Selection campaigns</Text>
 
-      <FlatList
-        data={campaigns}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.text}>Sector: {item.sector}</Text>
-            <Text style={styles.text}>Status: {item.status}</Text>
-            <Text style={styles.text}>Window: {item.openDate} → {item.closeDate}</Text>
+      {campaigns.length === 0 ? (
+        <Text style={styles.empty}>No campaigns yet.</Text>
+      ) : (
+        campaigns.map((campaign) => (
+          <View key={campaign.id} style={styles.card}>
+            <Text style={styles.cardTitle}>{campaign.name}</Text>
+            <Text style={styles.meta}>Sector: {campaign.sector}</Text>
+            <Text style={styles.meta}>Open: {campaign.openDate}</Text>
+            <Text style={styles.meta}>Close: {campaign.closeDate}</Text>
+            <Text style={styles.meta}>Status: {campaign.status}</Text>
           </View>
-        )}
-      />
-    </View>
+        ))
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#f3f4f6',
-    padding: 16,
+    padding: 24,
   },
-  newButton: {
-    backgroundColor: '#15803d',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 16,
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 20,
   },
-  newButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    textAlign: 'center',
+  empty: {
+    color: '#6b7280',
+    fontSize: 16,
   },
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    padding: 18,
+    marginBottom: 16,
   },
-  name: {
-    fontWeight: '700',
+  cardTitle: {
     fontSize: 18,
-    marginBottom: 8,
+    fontWeight: '700',
     color: '#111827',
+    marginBottom: 8,
   },
-  text: {
-    color: '#374151',
+  meta: {
+    fontSize: 14,
+    color: '#4b5563',
     marginBottom: 4,
   },
 });

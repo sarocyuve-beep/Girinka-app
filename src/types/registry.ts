@@ -1,11 +1,13 @@
-export interface DistributionEntry {
+export type DistributionStatus = 'Received' | 'Pending' | 'Returned';
+
+export type DistributionHistory = {
   year: number;
   source: string;
-  status: 'Received' | 'Pending' | 'Returned';
+  status: DistributionStatus;
   notes?: string;
-}
+};
 
-export interface Beneficiary {
+export type Beneficiary = {
   id: string;
   fullName: string;
   nationalId: string;
@@ -14,5 +16,7 @@ export interface Beneficiary {
   village: string;
   phone?: string;
   cattleReceived: number;
-  distributionHistory: DistributionEntry[];
-}
+  photoUrl?: string;
+  distributionHistory: DistributionHistory[];
+  district?: string;
+};
