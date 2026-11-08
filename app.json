@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "GirinkaApp",
+    "slug": "girinka-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "rw.gov.girinka.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8c650d55-c14a-4e9c-84ad-3f42f786b703"
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GirinkaApp ikeneye kubona amafoto kugira ngo mushobore gushyiraho amafoto y'inka."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ]
+  }
+}

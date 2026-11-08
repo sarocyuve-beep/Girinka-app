@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function hasProfile() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    // Active profile with a district. Anyone else (including people who
+    // self-registered in Firebase Auth) gets nothing.
+    function isActive() {
+      return hasProfile() && me().active == true && me().get('district', null) != null;
+    }
+    function role() { return me().role; }
+
+    // A document is "in scope" when it lies inside the user's location:
+    // every non-empty level of the profile must match the document.
+    function inScope(d) {
+      let m = me();
+      return d.district == m.district
+        && (m.get('sector', null) == null  || d.sector  == m.sector)
+        && (m.get('cell', null) == null    || d.cell    == m.cell)
+        && (m.get('village', null) == null || d.village == m.village);
+    }
+
+    function canWrite() { return isActive() && role() != 'VIEWER'; }
+    function isManager() { return isActive() && (role() == 'DISTRICT_ADMIN' || role() == 'ES_SECTOR'); }
+
+    // DISTRICT_ADMIN manages everyone in scope; ES_SECTOR manages only lower
+    // roles inside their own sector.
+    function canManage(d) {
+      let m = me();
+      return isActive() && inScope(d) && (
+        m.role == 'DISTRICT_ADMIN'
+        || (m.role == 'ES_SECTOR' && m.get('sector', null) != null
+            && d.role != 'DISTRICT_ADMIN' && d.role != 'ES_SECTOR' && d.role != 'SECTOR_MEMBER')
+      );
+    }
+
+    function isScoped(c) {
+      return c in [
+        'selectionCampaigns','candidates','eligibilityChecklists',
+        'assessmentScores','committeeDecisions','appeals',
+        'beneficiaries','animals','distributions'
+      ];
+    }
+
+    // ---------- users (profiles) ----------
+    match /users/{uid} {
+      allow get: if request.auth != null
+        && (request.auth.uid == uid || (isManager() && inScope(resource.data)));
+      allow list: if isManager() && inScope(resource.data);
+      allow create: if canManage(request.resource.data);
+      // nobody edits their own profile (no self-promotion)
+      allow update: if request.auth.uid != uid
+        && canManage(resource.data) && canManage(request.resource.data);
+      allow delete: if false;
+    }
+
+    // ---------- bookkeeping (seed marker) ----------
+    match /meta/{docId} {
+      allow read, write: if isActive() && role() == 'DISTRICT_ADMIN';
+    }
+
+    // ---------- data collections, scoped by location ----------
+    match /{collection}/{docId} {
+      allow read: if isScoped(collection) && isActive() && inScope(resource.data);
+      allow create: if isScoped(collection) && canWrite() && inScope(request.resource.data);
+      allow update: if isScoped(collection) && canWrite()
+        && inScope(resource.data) && inScope(request.resource.data);
+      allow delete: if isScoped(collection) && isActive()
+        && role() == 'DISTRICT_ADMIN' && inScope(resource.data);
+    }
+  }
+}

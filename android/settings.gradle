@@ -1,0 +1,114 @@
+pluginManagement {
+  def getRNVersion = {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+      if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine("cmd", "/c", "node -e \"console.log(require('react-native/package.json').version);\"")
+      } else {
+        commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+      }
+      standardOutput = stdout
+    }
+    return stdout.toString().trim()
+  }
+
+  def version = getRNVersion()
+  def (_, reactNativeMinor, reactNativePatch) = version.split("-")[0].tokenize('.').collect { it.toInteger() }
+
+  def getNodePath = { String module ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+      if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine("cmd", "/c", "node --print \"require.resolve('${module}')\"")
+      } else {
+        commandLine("node", "--print", "require.resolve('${module}')")
+      }
+      standardOutput = stdout
+    }
+    return stdout.toString().trim()
+  }
+
+  includeBuild(new File(getNodePath('@react-native/gradle-plugin/package.json')).getParentFile().toString())
+  if(reactNativeMinor == 74 && reactNativePatch <= 3){
+    includeBuild("react-settings-plugin")
+  }
+}
+
+plugins { 
+    id("com.facebook.react.settings")
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0' 
+}
+
+def getRNMinorVersion() {
+  def stdout = new ByteArrayOutputStream()
+  exec {
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+      commandLine("cmd", "/c", "node -e \"console.log(require('react-native/package.json').version);\"")
+    } else {
+      commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+    }
+    standardOutput = stdout
+  }
+  def version = stdout.toString().trim()
+  def coreVersion = version.split("-")[0]
+  def (major, minor, patch) = coreVersion.tokenize('.').collect { it.toInteger() }
+  return minor
+}
+
+if (getRNMinorVersion() >= 75) {
+  extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+    ex.autolinkLibrariesFromCommand()
+  }
+}
+
+rootProject.name = 'GirinkaApp'
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    reactAndroidLibs {
+      def stdout = new ByteArrayOutputStream()
+      exec {
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+          commandLine("cmd", "/c", "node --print \"require.resolve('react-native/package.json')\"")
+        } else {
+          commandLine("node", "--print", "require.resolve('react-native/package.json')")
+        }
+        standardOutput = stdout
+      }
+      from(files(new File(stdout.toString().trim(), "../gradle/libs.versions.toml")))
+    }
+  }
+}
+
+def getExpoAutolinkingPath() {
+  def stdout = new ByteArrayOutputStream()
+  exec {
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+      commandLine("cmd", "/c", "node --print \"require.resolve('expo/package.json')\"")
+    } else {
+      commandLine("node", "--print", "require.resolve('expo/package.json')")
+    }
+    standardOutput = stdout
+  }
+  return stdout.toString().trim()
+}
+
+apply from: new File(getExpoAutolinkingPath(), "../scripts/autolinking.gradle");
+useExpoModules()
+
+if (getRNMinorVersion() < 75) {
+  def stdout = new ByteArrayOutputStream()
+  exec {
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+      commandLine("cmd", "/c", "node --print \"require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })\"")
+    } else {
+      commandLine("node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })")
+    }
+    standardOutput = stdout
+  }
+  apply from: new File(stdout.toString().trim(), "../native_modules.gradle");
+  applyNativeModulesSettingsGradle(settings)
+}
+
+include ':app'
+includeBuild(new File(settingsDir, "../node_modules/@react-native/gradle-plugin"))
